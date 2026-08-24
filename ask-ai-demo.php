@@ -74,7 +74,9 @@ add_action( 'admin_head', function () {
 .da-head-title { font-size: 15px; font-weight: 600; flex: 1; }
 .da-head button { background: none; border: 0; padding: 4px; cursor: pointer; color: #1e1e1e; font-size: 18px; line-height: 1; }
 .da-body { flex: 1; overflow-y: auto; padding: 8px 20px 12px; display: flex; flex-direction: column; }
-.da-spark { margin: 40px 0 16px; }
+/* margin-top:auto bottom-anchors the greeting cluster (like the real panel)
+   without the scroll breakage justify-content:flex-end causes. */
+.da-spark { margin: auto 0 16px; }
 .da-howdy { font-weight: 600; margin: 0 0 8px; }
 .da-greeting { margin: 0 0 16px; }
 .da-msg-user { align-self: flex-end; background: #f0f0f1; border-radius: 16px; padding: 8px 14px; margin: 6px 0; max-width: 85%; }
