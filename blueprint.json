@@ -1,0 +1,25 @@
+{
+	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
+	"meta": {
+		"title": "Get help masterbar prototype",
+		"author": "ilonagl"
+	},
+	"preferredVersions": { "php": "8.2", "wp": "latest" },
+	"login": true,
+	"landingPage": "/wp-admin/",
+	"steps": [
+		{ "step": "mkdir", "path": "/wordpress/wp-content/mu-plugins" },
+		{
+			"step": "writeFile",
+			"path": "/wordpress/wp-content/mu-plugins/ask-ai-demo.php",
+			"data": {
+				"resource": "url",
+				"url": "https://raw.githubusercontent.com/ilonagl/ask-ai-playground/main/ask-ai-demo.php"
+			}
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php require '/wordpress/wp-load.php'; update_option( 'blogname', 'winged-devotedly' ); wp_update_user( array( 'ID' => 1, 'display_name' => 'Ilona Jaudzemyte' ) );"
+		}
+	]
+}
