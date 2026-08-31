@@ -103,6 +103,10 @@ add_action( 'admin_head', function () {
 .da-chips.stack .da-chip:first-child { border-radius: 8px 8px 0 0; }
 .da-chips.stack .da-chip:last-child { border-radius: 0 0 8px 8px; }
 .da-chips.stack .da-chip:only-child { border-radius: 8px; }
+.da-body .da-chips { padding: 0; }
+/* Every chip in a horizontal row is a pill, questions included. */
+.da-chips.row .da-chip { border-radius: 999px; }
+.da-chips:empty { display: none; }
 .da-chip.da-chip-topic { border-radius: 999px; padding: 8px 14px; }
 .da-chip.da-chip-back { color: #3858e9; border-color: transparent; }
 .da-chip { background: #fff; border: 1px solid #dcdcde; border-radius: 8px; padding: 10px 14px;
@@ -210,6 +214,11 @@ add_action( 'admin_footer', function () {
 			{ id: 'seo-sitemap', label: 'How do I submit my sitemap to Google?' },
 			{ id: 'seo-basics', label: 'How do I improve my SEO on WordPress.com?' }
 		] },
+		{ id: 'backups', label: 'Backups', questions: [
+			{ id: 'backup', label: 'How do I backup my site?' },
+			{ id: 'backups-restore-site', label: 'How do I restore my site from a backup?' },
+			{ id: 'backups-export-content', label: 'How do I export my content to move it elsewhere?' }
+		] },
 		{ id: 'plans', label: 'Plans & billing', questions: [
 			{ id: 'plan', label: 'How do I upgrade or cancel my plan?' },
 			{ id: 'plans-refund', label: 'Can I get a refund on my plan?' },
@@ -219,11 +228,6 @@ add_action( 'admin_footer', function () {
 			{ id: 'user', label: 'How do I add another user to my site?' },
 			{ id: 'users-roles', label: 'What can each user role do on my site?' },
 			{ id: 'users-remove-role', label: 'How do I remove a user or change their role?' }
-		] },
-		{ id: 'backups', label: 'Backups', questions: [
-			{ id: 'backup', label: 'How do I backup my site?' },
-			{ id: 'backups-restore-site', label: 'How do I restore my site from a backup?' },
-			{ id: 'backups-export-content', label: 'How do I export my content to move it elsewhere?' }
 		] }
 	];
 	var REPLIES = {
@@ -252,7 +256,7 @@ add_action( 'admin_footer', function () {
 		fallback: 'Great question &mdash; in the real assistant I&rsquo;d answer this from the WordPress.com guides. <em>(This demo only has canned answers for the suggestion chips &mdash; and typing &ldquo;Human&rdquo;.)</em>'
 	};
 
-	var asked = [], started = false, busy = false, activeTopic = null;
+	var asked = [], started = false, busy = false, activeTopic = null, suggestEl = null;
 	var body = document.getElementById( 'da-body' );
 	var chipsEl = document.getElementById( 'da-chips' );
 	var input = document.getElementById( 'da-input' );
@@ -265,33 +269,46 @@ add_action( 'admin_footer', function () {
 		body.appendChild( el( 'da-spark', SPARK ) );
 		body.appendChild( el( 'da-howdy', 'Howdy ' + DISPLAY_NAME + ' 👋' ) );
 		body.appendChild( el( 'da-greeting', 'I&rsquo;m your Support Assistant. You can ask for a human at any time, just type &ldquo;Human&rdquo;.' ) );
+		suggestEl = el( 'da-suggest', '' );
+		body.appendChild( suggestEl );
 	}
 
-	function chip( label, cls, fn ) {
+	function chip( target, label, cls, fn ) {
 		var b = document.createElement( 'button' );
 		b.className = 'da-chip' + ( cls ? ' ' + cls : '' );
 		b.textContent = label;
 		b.onclick = function () { if ( busy ) { return; } fn(); };
-		chipsEl.appendChild( b );
+		target.appendChild( b );
 	}
 
+	// Pre-conversation, suggestions live inside the chat flow (agenttic
+	// vertical layout) so the greeting is never squeezed; once the chat
+	// starts they move to the pinned row above the composer (horizontal).
 	function renderChips() {
 		chipsEl.innerHTML = '';
+		suggestEl.innerHTML = '';
+		var target = started ? chipsEl : suggestEl;
+		function setLayout( layout ) {
+			target.className = ( started ? '' : 'da-suggest ' ) + 'da-chips ' + layout;
+		}
 		if ( activeTopic ) {
 			var remaining = activeTopic.questions.filter( function ( q ) { return asked.indexOf( q.id ) === -1; } );
 			if ( ! remaining.length ) { activeTopic = null; renderChips(); return; }
-			chipsEl.className = 'da-chips ' + ( started ? 'row' : 'vertical' );
-			chip( '\u2039 Topics', 'da-chip-back', function () { activeTopic = null; renderChips(); } );
+			setLayout( started ? 'row' : 'vertical' );
+			chip( target, '\u2039 Topics', 'da-chip-back', function () { activeTopic = null; renderChips(); } );
 			remaining.forEach( function ( q ) {
-				chip( q.label, '', function () { asked.push( q.id ); send( q.label, q.id ); } );
+				chip( target, q.label, '', function () { asked.push( q.id ); send( q.label, q.id ); } );
 			} );
 			return;
 		}
-		chipsEl.className = 'da-chips ' + ( started ? 'row' : 'stack' );
-		TOPICS.forEach( function ( t ) {
+		setLayout( started ? 'row' : 'stack' );
+		// Landing shows the top 5 topics (like the Help Center home); the
+		// full set stays reachable from the mid-chat row and by typing.
+		var visible = started ? TOPICS : TOPICS.slice( 0, 5 );
+		visible.forEach( function ( t ) {
 			var left = t.questions.filter( function ( q ) { return asked.indexOf( q.id ) === -1; } ).length;
 			if ( ! left ) { return; }
-			chip( t.label, 'da-chip-topic', function () { activeTopic = t; renderChips(); } );
+			chip( target, t.label, 'da-chip-topic', function () { activeTopic = t; renderChips(); } );
 		} );
 	}
 
