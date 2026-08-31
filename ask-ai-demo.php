@@ -116,8 +116,12 @@ add_action( 'admin_head', function () {
 #da-panel.help .da-foot,
 #da-panel.help #da-back { display: none; }
 #da-panel.help .da-head { border-bottom: 1px solid #e0e0e0; }
-.da-help-search { display: flex; align-items: center; gap: 10px; border: 1px solid #949494; border-radius: 4px; padding: 11px 13px; margin-bottom: 22px; }
-.da-help-search input { flex: 1; border: 0; outline: none; font-size: 14px; background: transparent; }
+.da-help-search { display: flex; align-items: center; gap: 10px; border: 1px solid #949494; border-radius: 4px; padding: 6px 12px; margin-bottom: 22px; }
+/* wp-admin styles input[type=search] (min-height 30px, line-height 2, its own
+   padding/shadow) — reset it or the field renders ~2x too tall. */
+.da-help-search input { flex: 1; min-height: 0; height: auto; margin: 0; padding: 0; border: 0; outline: none;
+	box-shadow: none; background: transparent; font-size: 14px; line-height: 1.5; -webkit-appearance: none; }
+.da-help-search input::-webkit-search-cancel-button { -webkit-appearance: none; }
 .da-help-search svg { flex: 0 0 auto; }
 .da-help-label { font-size: 14px; color: #1e1e1e; margin-bottom: 10px; }
 .da-card { border: 1px solid #dcdcde; border-radius: 4px; margin-bottom: 22px; }
