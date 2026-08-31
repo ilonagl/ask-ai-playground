@@ -97,7 +97,12 @@ add_action( 'admin_head', function () {
 .da-chips.row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none;
 	mask-image: linear-gradient( to right, #000 calc( 100% - 24px ), transparent ); }
 .da-chips.row::-webkit-scrollbar { display: none; }
-.da-chips.wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+.da-chips.stack { display: flex; flex-direction: column; gap: 0; }
+.da-chips.stack .da-chip { width: 100%; text-align: left; margin: 0; padding: 14px 16px; line-height: 20px; border-radius: 0; }
+.da-chips.stack .da-chip + .da-chip { margin-top: -1px; }
+.da-chips.stack .da-chip:first-child { border-radius: 8px 8px 0 0; }
+.da-chips.stack .da-chip:last-child { border-radius: 0 0 8px 8px; }
+.da-chips.stack .da-chip:only-child { border-radius: 8px; }
 .da-chip.da-chip-topic { border-radius: 999px; padding: 8px 14px; }
 .da-chip.da-chip-back { color: #3858e9; border-color: transparent; }
 .da-chip { background: #fff; border: 1px solid #dcdcde; border-radius: 8px; padding: 10px 14px;
@@ -282,7 +287,7 @@ add_action( 'admin_footer', function () {
 			} );
 			return;
 		}
-		chipsEl.className = 'da-chips ' + ( started ? 'row' : 'wrap' );
+		chipsEl.className = 'da-chips ' + ( started ? 'row' : 'stack' );
 		TOPICS.forEach( function ( t ) {
 			var left = t.questions.filter( function ( q ) { return asked.indexOf( q.id ) === -1; } ).length;
 			if ( ! left ) { return; }
