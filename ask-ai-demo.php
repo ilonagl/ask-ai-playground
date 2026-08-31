@@ -98,7 +98,7 @@ add_action( 'admin_head', function () {
 	mask-image: linear-gradient( to right, #000 calc( 100% - 24px ), transparent ); }
 .da-chips.row::-webkit-scrollbar { display: none; }
 .da-chips.wrap { display: flex; flex-wrap: wrap; gap: 8px; }
-.da-chips.wrap .da-chip { border-radius: 16px; }
+.da-chip.da-chip-topic { border-radius: 999px; padding: 8px 14px; }
 .da-chip.da-chip-back { color: #3858e9; border-color: transparent; }
 .da-chip { background: #fff; border: 1px solid #dcdcde; border-radius: 8px; padding: 10px 14px;
 	font-size: 13px; cursor: pointer; white-space: nowrap; flex-shrink: 0; color: #1e1e1e; }
@@ -282,7 +282,7 @@ add_action( 'admin_footer', function () {
 			} );
 			return;
 		}
-		chipsEl.className = 'da-chips wrap';
+		chipsEl.className = 'da-chips ' + ( started ? 'row' : 'wrap' );
 		TOPICS.forEach( function ( t ) {
 			var left = t.questions.filter( function ( q ) { return asked.indexOf( q.id ) === -1; } ).length;
 			if ( ! left ) { return; }
