@@ -31,7 +31,7 @@ add_action( 'admin_bar_menu', function ( $bar ) {
 		'parent' => 'top-secondary',
 		'title'  => '<span class="da-swap-icon">' . $icons['spark'] . '</span><span class="da-swap-label">Agent</span>',
 		'href'   => '#',
-		'meta'   => array( 'class' => 'da-item', 'title' => 'Agent (inert in this demo)' ),
+		'meta'   => array( 'class' => 'da-item', 'title' => 'Agent' ),
 	) );
 	$bar->add_node( array(
 		'id'     => 'demo-notes',
@@ -260,7 +260,7 @@ add_action( 'admin_footer', function () {
 		if ( n ) { n.addEventListener( 'click', function ( e ) { e.preventDefault(); if ( fn ) { fn(); } } ); }
 	}
 	wireBar( 'wp-admin-bar-demo-get-help', function () { panel.classList.toggle( 'open' ); } );
-	wireBar( 'wp-admin-bar-demo-agent' );
+	wireBar( 'wp-admin-bar-demo-agent', function () { setView( false ); panel.classList.add( 'open' ); } );
 	wireBar( 'wp-admin-bar-demo-reader' );
 	wireBar( 'wp-admin-bar-demo-notes' );
 
