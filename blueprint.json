@@ -1,7 +1,7 @@
 {
 	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
 	"meta": {
-		"title": "Get help masterbar prototype",
+		"title": "Get help — v1 experiment demo",
 		"author": "ilonagl"
 	},
 	"preferredVersions": { "php": "8.2", "wp": "latest" },

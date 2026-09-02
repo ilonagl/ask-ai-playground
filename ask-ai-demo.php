@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Ask AI Masterbar Prototype (Playground demo)
- * Description: Staged, self-contained replica of Ilona's wp-admin masterbar + Support Assistant prototype (2026-08-24). All chat responses are canned — no real AI, no wpcom backend.
+ * Description: Staged, self-contained replica of the v1 "Increase usage of Odie" experiment state: "Get help" masterbar entry opening a chat-forward Support Assistant, guides one tap away behind the back arrow. No suggestions UI — that lives in the v1.1 follow-up demo (ask-ai-demo-v2.php). All chat responses are canned — no real AI, no wpcom backend.
  */
 
 add_action( 'admin_bar_menu', function ( $bar ) {
@@ -92,26 +92,6 @@ add_action( 'admin_head', function () {
 .da-msg-bot { align-self: flex-start; margin: 6px 0; max-width: 95%; }
 .da-msg-bot a { color: #3858e9; }
 .da-thinking { display: flex; gap: 8px; align-items: center; color: #757575; margin: 6px 0; }
-.da-chips { flex: 0 0 auto; padding: 0 20px 8px; }
-.da-chips.vertical .da-chip { display: block; width: 100%; text-align: left; margin-bottom: 8px; }
-.da-chips.row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none;
-	mask-image: linear-gradient( to right, #000 calc( 100% - 24px ), transparent ); }
-.da-chips.row::-webkit-scrollbar { display: none; }
-.da-chips.stack { display: flex; flex-direction: column; gap: 0; }
-.da-chips.stack .da-chip { width: 100%; text-align: left; margin: 0; padding: 14px 16px; line-height: 20px; border-radius: 0; }
-.da-chips.stack .da-chip + .da-chip { margin-top: -1px; }
-.da-chips.stack .da-chip:first-child { border-radius: 8px 8px 0 0; }
-.da-chips.stack .da-chip:last-child { border-radius: 0 0 8px 8px; }
-.da-chips.stack .da-chip:only-child { border-radius: 8px; }
-.da-body .da-chips { padding: 0; }
-/* Every chip in a horizontal row is a pill, questions included. */
-.da-chips.row .da-chip { border-radius: 999px; }
-.da-chips:empty { display: none; }
-.da-chip.da-chip-topic { border-radius: 999px; padding: 8px 14px; }
-.da-chip.da-chip-back { color: #3858e9; border-color: transparent; }
-.da-chip { background: #fff; border: 1px solid #dcdcde; border-radius: 8px; padding: 10px 14px;
-	font-size: 13px; cursor: pointer; white-space: nowrap; flex-shrink: 0; color: #1e1e1e; }
-.da-chip:hover { background: #f6f7f7; }
 .da-foot { flex: 0 0 auto; padding: 0 16px 6px; }
 .da-input-wrap { display: flex; align-items: center; gap: 8px; border: 1px solid #dcdcde; border-radius: 12px; padding: 10px 12px; }
 .da-input-wrap input { flex: 1; border: 0; outline: none; font-size: 14px; background: transparent; }
@@ -124,7 +104,6 @@ add_action( 'admin_head', function () {
 .da-help { display: none; flex: 1; flex-direction: column; overflow-y: auto; padding: 16px 20px; }
 #da-panel.help .da-help { display: flex; }
 #da-panel.help .da-body,
-#da-panel.help .da-chips,
 #da-panel.help .da-foot,
 #da-panel.help #da-back { display: none; }
 #da-panel.help .da-head { border-bottom: 1px solid #e0e0e0; }
@@ -177,7 +156,6 @@ add_action( 'admin_footer', function () {
 		</div>
 		<button type="button" class="da-help-cta" id="da-to-chat">Get help</button>
 	</div>
-	<div class="da-chips" id="da-chips"></div>
 	<div class="da-foot">
 		<div class="da-input-wrap">
 			<input id="da-input" type="text" placeholder="Ask anything..." autocomplete="off" />
@@ -191,74 +169,38 @@ add_action( 'admin_footer', function () {
 	var DISPLAY_NAME = '<?php echo $display_name; ?>';
 	var SPARK = '<svg width="32" height="32" viewBox="3 3 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#3858e9" d="M18.7035 11.5821L15.8309 10.5912C14.6949 10.2009 13.7991 9.30509 13.4088 8.16908L12.4179 5.29651C12.2828 4.90116 11.7172 4.90116 11.5821 5.29651L10.5912 8.16908C10.2009 9.30509 9.30509 10.2009 8.16908 10.5912L5.29651 11.5821C4.90116 11.7172 4.90116 12.2828 5.29651 12.4179L8.16908 13.4088C9.30509 13.7991 10.2009 14.6949 10.5912 15.8309L11.5821 18.7035C11.7172 19.0988 12.2828 19.0988 12.4179 18.7035L13.4088 15.8309C13.7991 14.6949 14.6949 13.7991 15.8309 13.4088L18.7035 12.4179C19.0988 12.2828 19.0988 11.7172 18.7035 11.5821Z"/></svg>';
 
-	// Mirrors the Help Center guide taxonomy: topics first, then that topic's
-	// follow-up questions. Each question id keys into REPLIES below.
-	var TOPICS = [
-		{ id: 'domains', label: 'Domains', questions: [
-			{ id: 'domain', label: 'How do I connect a custom domain?' },
-			{ id: 'domains-dns', label: 'How do I manage DNS records for my domain?' },
-			{ id: 'domains-ssl', label: 'When does SSL activate on my domain?' }
-		] },
-		{ id: 'email', label: 'Email', questions: [
-			{ id: 'email', label: 'How do I set up a professional email address?' },
-			{ id: 'email-manage-mailboxes', label: 'How do I rename or remove a mailbox?' },
-			{ id: 'email-forwarding-setup', label: 'Can I forward email from my custom domain?' }
-		] },
-		{ id: 'themes', label: 'Themes & design', questions: [
-			{ id: 'theme', label: "How do I change my site's theme?" },
-			{ id: 'themes-fonts-colors', label: 'Can I change fonts and colors in the Site Editor?' },
-			{ id: 'themes-switch-safe', label: 'Will switching themes delete my content or menus?' }
-		] },
-		{ id: 'seo', label: 'Traffic & SEO', questions: [
-			{ id: 'google', label: "Why isn't my site showing up on Google?" },
-			{ id: 'seo-sitemap', label: 'How do I submit my sitemap to Google?' },
-			{ id: 'seo-basics', label: 'How do I improve my SEO on WordPress.com?' }
-		] },
-		{ id: 'backups', label: 'Backups', questions: [
-			{ id: 'backup', label: 'How do I backup my site?' },
-			{ id: 'backups-restore-site', label: 'How do I restore my site from a backup?' },
-			{ id: 'backups-export-content', label: 'How do I export my content to move it elsewhere?' }
-		] },
-		{ id: 'plans', label: 'Plans & billing', questions: [
-			{ id: 'plan', label: 'How do I upgrade or cancel my plan?' },
-			{ id: 'plans-refund', label: 'Can I get a refund on my plan?' },
-			{ id: 'plans-after-cancel', label: 'What happens to my site if I cancel my plan?' }
-		] },
-		{ id: 'users', label: 'Users', questions: [
-			{ id: 'user', label: 'How do I add another user to my site?' },
-			{ id: 'users-roles', label: 'What can each user role do on my site?' },
-			{ id: 'users-remove-role', label: 'How do I remove a user or change their role?' }
-		] }
-	];
+	// v1 experiment state: no suggestions UI — free typing only. Typed
+	// questions match canned replies by keyword; everything else falls back.
 	var REPLIES = {
-		backup: 'Here are the two most relevant guides:<br><br>&bull; <a href="#">Back up your WordPress.com site</a> &mdash; covers how backups work, what&rsquo;s included, and how to view them.<br>&bull; <a href="#">Download a backup of your site</a> &mdash; covers downloading a full backup or restoring to a self-hosted site.<br><br>Would you like help with anything specific from those guides?',
-		domain: 'You can connect a domain you already own in <strong>Upgrades &rarr; Domains &rarr; Use a domain I own</strong>. I&rsquo;ll walk you through updating your name servers &mdash; it usually takes a few minutes and up to 24h to propagate. The guides that cover this:<br><br>&bull; <a href="#">Connect an existing domain</a> &mdash; the whole connection flow, start to finish.<br>&bull; <a href="#">Change your domain name servers</a> &mdash; the name server step in detail.<br><br>Want the step-by-step?',
-		email: 'Professional Email lives under <strong>Upgrades &rarr; Emails</strong>. You can add a mailbox on your custom domain (there&rsquo;s a free trial for the first mailbox). Two guides worth having open:<br><br>&bull; <a href="#">Add a professional email address</a> &mdash; setting up your first mailbox.<br>&bull; <a href="#">Manage your Professional Email mailboxes</a> &mdash; adding, renaming, and removing them later.<br><br>Want me to check what would work with your current domain?',
-		google: 'Usually this is one of three things: the site is new (indexing takes days), Search Engine Visibility is discouraged in <strong>Settings &rarr; Reading</strong>, or there&rsquo;s no sitemap submitted. Your privacy setting looks fine. The other two are covered here:<br><br>&bull; <a href="#">Site visibility and search engine settings</a> &mdash; what the Reading setting actually does.<br>&bull; <a href="#">Sitemaps on WordPress.com</a> &mdash; finding your sitemap and submitting it to Google.<br><br>Shall I check the other two?',
-		theme: 'Head to <strong>Appearance &rarr; Themes</strong> to browse and activate a new theme &mdash; your content stays put. These two guides cover it:<br><br>&bull; <a href="#">Find, preview, and activate a theme</a> &mdash; previewing a theme before you commit to it.<br>&bull; <a href="#">Customize your theme with the Site Editor</a> &mdash; colors, fonts, and layout after you switch.<br><br>If you tell me the look you&rsquo;re after, I can suggest a few that fit.',
-		plan: 'You can change your plan any time in <strong>Upgrades &rarr; Plans</strong>. Upgrades are prorated, and cancelling within the refund window gives your money back automatically. Both directions are covered here:<br><br>&bull; <a href="#">Upgrade your WordPress.com plan</a> &mdash; what each plan includes and how proration works.<br>&bull; <a href="#">Cancel a purchase and request a refund</a> &mdash; refund windows and how to cancel.<br><br>Which direction are you thinking?',
-		user: 'Invite people in <strong>Users &rarr; Add New</strong> &mdash; you choose their role (Admin, Editor, Author&hellip;) and they get an email invite. The guides for this:<br><br>&bull; <a href="#">Invite people to your site</a> &mdash; sending, resending, and managing invites.<br>&bull; <a href="#">User roles and permissions</a> &mdash; what each role can and can&rsquo;t do.<br><br>Want a quick rundown of what each role can do?',
-		'domains-dns': 'You can add, edit, or delete DNS records in <strong>Upgrades &rarr; Domains &rarr; your domain &rarr; DNS records</strong> &mdash; A, CNAME, MX, and TXT records are all managed there, as long as your name servers point to WordPress.com. The guides for this:<br><br>&bull; <a href="#">Manage custom DNS records</a> &mdash; adding, editing, and deleting each record type.<br>&bull; <a href="#">Restore default DNS records</a> &mdash; undo custom changes if something breaks.<br><br>Which record are you setting up?',
-		'domains-ssl': 'No setup needed &mdash; an SSL certificate is issued automatically once your domain finishes connecting. It usually activates within minutes of your name servers propagating, though the padlock can take up to 24 hours to show everywhere. You can check its status in <strong>Upgrades &rarr; Domains &rarr; your domain</strong>.<br><br>&bull; <a href="#">Secure your site with HTTPS and SSL</a> &mdash; how certificates are issued, renewed, and fixed.<br><br>Still seeing a security warning after 24 hours?',
-		'email-manage-mailboxes': 'You can manage existing mailboxes in <strong>Upgrades &rarr; Emails</strong> &mdash; pick your domain, then the mailbox you want to change. Removing a mailbox also deletes its stored mail, so export anything important first. The guide that covers this:<br><br>&bull; <a href="#">Manage your Professional Email mailboxes</a> &mdash; renaming, resetting passwords, and removing mailboxes.<br><br>Which mailbox change did you have in mind?',
-		'email-forwarding-setup': 'Email forwarding is free with any custom domain &mdash; set it up in <strong>Upgrades &rarr; Emails &rarr; Add email forwarder</strong>. New forwards usually start working within a few minutes. The guides that cover this:<br><br>&bull; <a href="#">Add email forwarding to your domain</a> &mdash; the setup flow, step by step.<br>&bull; <a href="#">Set up email for your custom domain</a> &mdash; forwarding vs. a full mailbox, compared.<br><br>Want me to walk you through adding one?',
-		'themes-fonts-colors': 'You can restyle your whole site in <strong>Appearance &rarr; Editor &rarr; Styles</strong> &mdash; pick a ready-made style variation or fine-tune fonts and colors one by one. Changes apply site-wide and only go live when you hit <strong>Save</strong>. These guides cover it:<br><br>&bull; <a href="#">Change fonts and colors with Styles</a> &mdash; the Styles panel, start to finish.<br>&bull; <a href="#">Use style variations in the Site Editor</a> &mdash; one-click looks designed for your theme.<br><br>Want to start with a style variation?',
-		'themes-switch-safe': 'No &mdash; your posts, pages, and media stay exactly where they are when you switch themes. Menus and widgets can shift position because each theme places them differently, so preview first via <strong>Appearance &rarr; Themes</strong> &rarr; <em>Live Preview</em>. The details:<br><br>&bull; <a href="#">What happens when you change your theme</a> &mdash; what carries over and what to double-check afterwards.<br><br>Want a quick pre-switch checklist for your menus?',
-		'seo-sitemap': 'Your sitemap is generated automatically at <strong>yoursite.com/sitemap.xml</strong> &mdash; no plugin needed. Verify your site under <strong>Tools &rarr; Marketing &rarr; Traffic</strong>, then paste the sitemap URL into Search Console. The guides that cover this:<br><br>&bull; <a href="#">Submit your sitemap to Google Search Console</a> &mdash; verification and submission, step by step.<br>&bull; <a href="#">Sitemaps on WordPress.com</a> &mdash; what your sitemap includes and how it updates.<br><br>Want help verifying your site first?',
-		'seo-basics': 'The technical side &mdash; sitemaps, clean code, fast hosting &mdash; is handled for you. Your biggest wins are strong page titles and descriptions, which you can set under <strong>Tools &rarr; Marketing &rarr; Traffic</strong>. Two guides to start with:<br><br>&bull; <a href="#">SEO essentials for WordPress.com sites</a> &mdash; the fundamentals, from titles to internal links.<br>&bull; <a href="#">Customize your meta description</a> &mdash; control how your site appears in search results.<br><br>Which page would you like to optimize first?',
-		'plans-refund': 'Yes &mdash; plans come with a <strong>14-day money-back guarantee</strong> (96 hours for domain registrations). Head to <strong>Upgrades &rarr; Purchases</strong>, pick your plan, and choose <em>Cancel and refund</em> &mdash; the amount goes back to your original payment method.<br><br>&bull; <a href="#">Refunds and cancellation policy</a> &mdash; refund windows for plans, domains, and add-ons.<br><br>Want me to check whether your plan is still inside the refund window?',
-		'plans-after-cancel': 'Your site stays online &mdash; cancelling moves you to the free plan, so paid features like plugins and premium themes stop working, but your content is safe. A domain stays yours until its own expiry date; renew it in <strong>Upgrades &rarr; Domains</strong>.<br><br>&bull; <a href="#">Cancel your WordPress.com plan</a> &mdash; what changes on your site when a plan ends.<br>&bull; <a href="#">Domain expiration and renewal</a> &mdash; keeping your domain after cancelling.<br><br>Curious which features your site would lose?',
-		'users-roles': 'Each role unlocks a different level of access &mdash; <strong>Administrators</strong> control everything, <strong>Editors</strong> manage all content, <strong>Authors</strong> publish their own posts, and <strong>Contributors</strong> write drafts for review. You can see who has which role under <strong>Users &rarr; All Users</strong>.<br><br>&bull; <a href="#">User roles and capabilities</a> &mdash; a full breakdown of what every role can and can&rsquo;t do.<br><br>Curious which role fits the person you have in mind?',
-		'users-remove-role': 'You can change a role or remove someone in <strong>Users &rarr; All Users</strong> &mdash; hover over their name, then choose <strong>Edit</strong> to switch roles or <strong>Remove</strong> to revoke access. Their published posts stay put &mdash; you&rsquo;ll just be asked to reassign them.<br><br>&bull; <a href="#">Change a user&rsquo;s role</a> &mdash; updating access levels step by step.<br>&bull; <a href="#">Remove a user from your site</a> &mdash; what happens to their content.<br><br>Want a hand with a specific team member?',
-		'backups-restore-site': 'You can restore your site to any earlier point from <strong>Jetpack &rarr; Activity Log</strong> &mdash; pick an event, choose <strong>Restore</strong>, and it rolls back your content, themes, plugins, and database in a few minutes. The guide that covers this:<br><br>&bull; <a href="#">Restore your site from a backup</a> &mdash; choosing a restore point and what gets rolled back.<br><br>Not sure which point to pick &mdash; want help narrowing it down?',
-		'backups-export-content': 'You can export everything from <strong>Tools &rarr; Export</strong> &mdash; it creates an XML file of your posts, pages, and comments that any WordPress site can import. The guides that cover this:<br><br>&bull; <a href="#">Export your content</a> &mdash; downloading the XML export file, step by step.<br>&bull; <a href="#">Move your site to a new host</a> &mdash; the full migration flow, including your media library.<br><br>Where are you planning to take your content?',
+		backup: 'Backups are included with your plan and run automatically &mdash; you&rsquo;ll find them under <strong>Jetpack &rarr; Activity Log</strong>, where you can restore your site to any earlier point or download a copy. Would you like the steps to restore, or to download a backup?',
+		domain: 'You can connect a domain you already own in <strong>Upgrades &rarr; Domains &rarr; Use a domain I own</strong>. I&rsquo;ll walk you through updating your name servers &mdash; it usually takes a few minutes and up to 24h to propagate. Want the step-by-step?',
+		email: 'Professional Email lives under <strong>Upgrades &rarr; Emails</strong>. You can add a mailbox on your custom domain &mdash; there&rsquo;s a free trial for the first one &mdash; or set up free email forwarding instead. Want me to check what would work with your current domain?',
+		google: 'Usually this is one of three things: the site is new (indexing takes days), Search Engine Visibility is discouraged in <strong>Settings &rarr; Reading</strong>, or there&rsquo;s no sitemap submitted yet. Your privacy setting looks fine &mdash; shall I check the other two?',
+		theme: 'Head to <strong>Appearance &rarr; Themes</strong> to browse and activate a new theme &mdash; your content stays put when you switch. If you tell me the look you&rsquo;re after, I can suggest a few that fit.',
+		plan: 'You can change your plan any time in <strong>Upgrades &rarr; Plans</strong>. Upgrades are prorated, and cancelling within the refund window gives your money back automatically. Which direction are you thinking?',
+		user: 'Invite people in <strong>Users &rarr; Add New</strong> &mdash; you choose their role (Admin, Editor, Author&hellip;) and they get an email invite. Want a quick rundown of what each role can do?',
 		human: 'Of course &mdash; I&rsquo;m connecting you with a Happiness Engineer now. You&rsquo;ll keep this whole conversation, so there&rsquo;s no need to repeat yourself. <em>(End of demo &mdash; in the real flow a human joins here.)</em>',
-		fallback: 'Great question &mdash; in the real assistant I&rsquo;d answer this from the WordPress.com guides. <em>(This demo only has canned answers for the suggestion chips &mdash; and typing &ldquo;Human&rdquo;.)</em>'
+		fallback: 'Great question &mdash; in the real assistant I&rsquo;d answer this from the WordPress.com guides. <em>(This demo has canned answers for a few common topics &mdash; try asking about backups, domains, email, themes, plans, users, or SEO.)</em>'
 	};
+	var KEYWORDS = [
+		[ /human|agent|person|someone/i, 'human' ],
+		[ /backup|restore|export/i, 'backup' ],
+		[ /domain|dns|ssl/i, 'domain' ],
+		[ /e-?mail|mailbox|forward/i, 'email' ],
+		[ /google|seo|search engine|sitemap|traffic/i, 'google' ],
+		[ /theme|design|font|color/i, 'theme' ],
+		[ /plan|billing|refund|upgrade|cancel|price/i, 'plan' ],
+		[ /user|invite|role/i, 'user' ]
+	];
+	function matchReply( text ) {
+		for ( var i = 0; i < KEYWORDS.length; i++ ) {
+			if ( KEYWORDS[ i ][ 0 ].test( text ) ) { return KEYWORDS[ i ][ 1 ]; }
+		}
+		return 'fallback';
+	}
 
-	var asked = [], started = false, busy = false, activeTopic = null, suggestEl = null;
+	var busy = false;
 	var body = document.getElementById( 'da-body' );
-	var chipsEl = document.getElementById( 'da-chips' );
 	var input = document.getElementById( 'da-input' );
 	var sendBtn = document.getElementById( 'da-send' );
 	var panel = document.getElementById( 'da-panel' );
@@ -268,62 +210,19 @@ add_action( 'admin_footer', function () {
 	function renderIntro() {
 		body.appendChild( el( 'da-spark', SPARK ) );
 		body.appendChild( el( 'da-howdy', 'Howdy ' + DISPLAY_NAME + ' 👋' ) );
-		body.appendChild( el( 'da-greeting', 'I&rsquo;m your Support Assistant. What can I help you with?' ) );
-		suggestEl = el( 'da-suggest', '' );
-		body.appendChild( suggestEl );
+		body.appendChild( el( 'da-greeting', 'I&rsquo;m your personal Support Assistant. I can help with any questions about your site or account.' ) );
 	}
 
-	function chip( target, label, cls, fn ) {
-		var b = document.createElement( 'button' );
-		b.className = 'da-chip' + ( cls ? ' ' + cls : '' );
-		b.textContent = label;
-		b.onclick = function () { if ( busy ) { return; } fn(); };
-		target.appendChild( b );
-	}
-
-	// Pre-conversation, suggestions live inside the chat flow (agenttic
-	// vertical layout) so the greeting is never squeezed; once the chat
-	// starts they move to the pinned row above the composer (horizontal).
-	function renderChips() {
-		chipsEl.innerHTML = '';
-		suggestEl.innerHTML = '';
-		var target = started ? chipsEl : suggestEl;
-		function setLayout( layout ) {
-			target.className = ( started ? '' : 'da-suggest ' ) + 'da-chips ' + layout;
-		}
-		if ( activeTopic ) {
-			var remaining = activeTopic.questions.filter( function ( q ) { return asked.indexOf( q.id ) === -1; } );
-			if ( ! remaining.length ) { activeTopic = null; renderChips(); return; }
-			setLayout( started ? 'row' : 'vertical' );
-			chip( target, '\u2039 Topics', 'da-chip-back', function () { activeTopic = null; renderChips(); } );
-			remaining.forEach( function ( q ) {
-				chip( target, q.label, '', function () { asked.push( q.id ); send( q.label, q.id ); } );
-			} );
-			return;
-		}
-		setLayout( started ? 'row' : 'stack' );
-		// Landing shows the top 5 topics (like the Help Center home); the
-		// full set stays reachable from the mid-chat row and by typing.
-		var visible = started ? TOPICS : TOPICS.slice( 0, 5 );
-		visible.forEach( function ( t ) {
-			var left = t.questions.filter( function ( q ) { return asked.indexOf( q.id ) === -1; } ).length;
-			if ( ! left ) { return; }
-			chip( target, t.label, 'da-chip-topic', function () { activeTopic = t; renderChips(); } );
-		} );
-	}
-
-	function send( text, id ) {
-		started = true; busy = true;
+	function send( text ) {
+		busy = true;
 		body.appendChild( el( 'da-msg-user', text.replace( /</g, '&lt;' ) ) );
-		renderChips();
 		input.placeholder = 'Just a moment...';
 		var thinking = el( 'da-thinking', SPARK.replace( 'width="32" height="32"', 'width="18" height="18"' ) + ' Thinking&hellip;' );
 		body.appendChild( thinking );
 		body.scrollTop = body.scrollHeight;
 		setTimeout( function () {
 			thinking.remove();
-			var key = id || ( /human/i.test( text ) ? 'human' : 'fallback' );
-			body.appendChild( el( 'da-msg-bot', REPLIES[ key ] || REPLIES.fallback ) );
+			body.appendChild( el( 'da-msg-bot', REPLIES[ matchReply( text ) ] || REPLIES.fallback ) );
 			body.scrollTop = body.scrollHeight;
 			busy = false;
 			input.placeholder = 'Ask anything...';
@@ -335,14 +234,7 @@ add_action( 'admin_footer', function () {
 		if ( ! text || busy ) { return; }
 		input.value = '';
 		sendBtn.className = 'da-send';
-		var match = null;
-		TOPICS.forEach( function ( topic ) {
-			topic.questions.forEach( function ( q ) {
-				if ( q.label.toLowerCase() === text.toLowerCase() ) { match = q; activeTopic = topic; }
-			} );
-		} );
-		if ( match && asked.indexOf( match.id ) === -1 ) { asked.push( match.id ); }
-		send( text, match && match.id );
+		send( text );
 	}
 
 	input.addEventListener( 'keydown', function ( e ) { if ( e.key === 'Enter' ) { submitInput(); } } );
@@ -383,7 +275,6 @@ add_action( 'admin_footer', function () {
 	} );
 
 	renderIntro();
-	renderChips();
 } )();
 </script>
 	<?php
