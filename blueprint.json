@@ -14,7 +14,7 @@
 			"path": "/wordpress/wp-content/mu-plugins/ask-ai-demo.php",
 			"data": {
 				"resource": "url",
-				"url": "https://raw.githubusercontent.com/ilonagl/ask-ai-playground/main/ask-ai-demo.php"
+				"url": "https://raw.githubusercontent.com/ilonagl/ask-ai-playground/main/ask-ai-demo.php?v=4b08b21"
 			}
 		},
 		{
