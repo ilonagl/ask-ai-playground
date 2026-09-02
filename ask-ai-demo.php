@@ -210,7 +210,7 @@ add_action( 'admin_footer', function () {
 	function renderIntro() {
 		body.appendChild( el( 'da-spark', SPARK ) );
 		body.appendChild( el( 'da-howdy', 'Howdy ' + DISPLAY_NAME + ' 👋' ) );
-		body.appendChild( el( 'da-greeting', 'I&rsquo;m your personal Support Assistant. I can help with any questions about your site or account.' ) );
+		body.appendChild( el( 'da-greeting', 'I&rsquo;m your Support Assistant. What can I help you with?' ) );
 	}
 
 	function send( text ) {
