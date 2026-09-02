@@ -268,7 +268,7 @@ add_action( 'admin_footer', function () {
 	function renderIntro() {
 		body.appendChild( el( 'da-spark', SPARK ) );
 		body.appendChild( el( 'da-howdy', 'Howdy ' + DISPLAY_NAME + ' 👋' ) );
-		body.appendChild( el( 'da-greeting', 'I&rsquo;m your Support Assistant. You can ask for a human at any time, just type &ldquo;Human&rdquo;.' ) );
+		body.appendChild( el( 'da-greeting', 'I&rsquo;m your Support Assistant. What can I help you with?' ) );
 		suggestEl = el( 'da-suggest', '' );
 		body.appendChild( suggestEl );
 	}
