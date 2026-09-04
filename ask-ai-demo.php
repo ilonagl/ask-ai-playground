@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Ask AI Masterbar Prototype (Playground demo)
- * Description: Staged, self-contained replica of the v1 "Increase usage of Odie" experiment state: "Get help" masterbar entry opening a chat-forward Support Assistant, guides one tap away behind the back arrow. No suggestions UI — that lives in the v1.1 follow-up demo (ask-ai-demo-v2.php). All chat responses are canned — no real AI, no wpcom backend.
+ * Description: Staged, self-contained replica of the v1 "Increase usage of Odie" experiment state: "Get help" masterbar entry opening a chat-forward Support Assistant, guides one tap away behind a labelled "Guides and resources" back link in the header. No suggestions UI — that lives in the v1.1 follow-up demo (ask-ai-demo-v2.php). All chat responses are canned — no real AI, no wpcom backend.
  */
 
 add_action( 'admin_bar_menu', function ( $bar ) {
@@ -80,6 +80,12 @@ add_action( 'admin_head', function () {
 #da-panel.open { display: flex; }
 .da-head { display: flex; align-items: center; gap: 8px; padding: 14px 16px; flex: 0 0 auto; }
 .da-head-title { font-size: 15px; font-weight: 600; flex: 1; }
+/* Chat view: the header's left text IS the back link, at the title's size and
+   weight (no separate title — both do not fit the 368px row); the greeting
+   names the assistant. */
+#da-panel:not(.help) .da-head-title { display: none; }
+.da-head .da-back { display: inline-flex; align-items: center; gap: 6px; flex: 1; justify-content: flex-start; font-size: 15px; font-weight: 600; padding: 4px 4px 4px 0; }
+.da-head .da-back-chevron { font-size: 18px; line-height: 1; }
 .da-head button { background: none; border: 0; padding: 4px; cursor: pointer; color: #1e1e1e; font-size: 18px; line-height: 1; }
 .da-head button:hover { color: #3858e9; }
 .da-body { flex: 1; overflow-y: auto; padding: 8px 20px 12px; display: flex; flex-direction: column; }
@@ -100,7 +106,7 @@ add_action( 'admin_head', function () {
 .da-disclaimer { text-align: center; color: #757575; font-size: 12px; padding: 6px 0 10px; }
 .da-disclaimer a { color: inherit; }
 
-/* --- Help Center, behind the back arrow (mirrors the shipped panel) --- */
+/* --- Guides and resources view, behind the labelled back link (mirrors the shipped Help Center home) --- */
 .da-help { display: none; flex: 1; flex-direction: column; overflow-y: auto; padding: 16px 20px; }
 #da-panel.help .da-help { display: flex; }
 #da-panel.help .da-body,
@@ -134,8 +140,8 @@ add_action( 'admin_footer', function () {
 	?>
 <div id="da-panel" class="open" role="dialog" aria-label="Support Assistant">
 	<div class="da-head">
-		<button type="button" id="da-back" aria-label="Back to Help Center">&#8249;</button>
-		<span class="da-head-title" id="da-head-title">Support Assistant</span>
+		<button type="button" id="da-back" class="da-back"><span class="da-back-chevron" aria-hidden="true">&#8249;</span>Guides and resources</button>
+		<span class="da-head-title" id="da-head-title">Guides and resources</span>
 		<button type="button" aria-label="Menu">&#8942;</button>
 		<button type="button" id="da-close" aria-label="Close">&#10005;</button>
 	</div>
@@ -242,12 +248,10 @@ add_action( 'admin_footer', function () {
 	sendBtn.addEventListener( 'click', submitInput );
 	document.getElementById( 'da-close' ).addEventListener( 'click', function () { panel.classList.remove( 'open' ); } );
 
-	// Back arrow reveals the Help Center; its "Get help" button returns to the
-	// chat. Chat state survives the round trip.
-	var headTitle = document.getElementById( 'da-head-title' );
+	// The "‹ Guides and resources" link reveals the guides view; its "Get help"
+	// button returns to the chat. Chat state survives the round trip.
 	function setView( help ) {
 		panel.classList.toggle( 'help', help );
-		headTitle.textContent = help ? 'Help Center' : 'Support Assistant';
 	}
 	document.getElementById( 'da-back' ).addEventListener( 'click', function () { setView( true ); } );
 	document.getElementById( 'da-to-chat' ).addEventListener( 'click', function () { setView( false ); } );
